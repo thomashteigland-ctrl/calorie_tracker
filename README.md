@@ -46,6 +46,7 @@ Run migrations in order (SQL editor):
 2. `supabase/migrations/20250603120000_profiles_goals_logs.sql`
 3. `supabase/migrations/20250604120000_foods_barcode_scan.sql`
 4. `supabase/migrations/20250605120000_google_oauth_profile.sql`
+5. `supabase/migrations/20250606120000_progress_tracking.sql` (weight + steps tables)
 
 ### Scanning packaged foods
 

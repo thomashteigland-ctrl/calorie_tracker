@@ -1,22 +1,31 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { deleteFoodLog, getLogsForDate } from "../api/logs";
+import { deleteFoodLog, getLoggedDates, getLogsForDate } from "../api/logs";
 import { useAuth } from "../contexts/AuthContext";
-import { formatDisplayDate, todayLocalDate } from "../lib/dates";
+import { addDays, formatDisplayDate, last28Days, todayLocalDate } from "../lib/dates";
 import { addTotals, EMPTY_TOTALS, macrosForPortions } from "../lib/macros";
 import type { FoodLogWithFood } from "../types/foodLog";
 import { AddFoodModal } from "./AddFoodModal";
-import { DailySummary } from "./DailySummary";
 import { ConnectedAccounts } from "./ConnectedAccounts";
+import { DailySummary } from "./DailySummary";
 import { LogEntryRow } from "./LogEntryRow";
+import { TrackingCalendar } from "./TrackingCalendar";
 
 export function HomeScreen() {
-  const { user, goals, signOut } = useAuth();
-  const [loggedDate] = useState(todayLocalDate);
+  const { user, goals } = useAuth();
+  const [loggedDate, setLoggedDate] = useState(todayLocalDate);
+  const [loggedDates, setLoggedDates] = useState<Set<string>>(new Set());
   const [logs, setLogs] = useState<FoodLogWithFood[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const loadCalendar = useCallback(async () => {
+    if (!user) return;
+    const range = last28Days();
+    const dates = await getLoggedDates(user.id, range[0], range[range.length - 1]);
+    setLoggedDates(new Set(dates));
+  }, [user]);
 
   const loadLogs = useCallback(async () => {
     if (!user) return;
@@ -33,6 +42,10 @@ export function HomeScreen() {
   }, [user, loggedDate]);
 
   useEffect(() => {
+    void loadCalendar();
+  }, [loadCalendar]);
+
+  useEffect(() => {
     void loadLogs();
   }, [loadLogs]);
 
@@ -46,6 +59,7 @@ export function HomeScreen() {
     try {
       await deleteFoodLog(logId);
       setLogs((prev) => prev.filter((l) => l.id !== logId));
+      void loadCalendar();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not remove entry");
     } finally {
@@ -53,54 +67,73 @@ export function HomeScreen() {
     }
   }
 
+  function handleAdded() {
+    void loadLogs();
+    void loadCalendar();
+  }
+
   if (!user || !goals) return null;
 
+  const today = todayLocalDate();
+  const canGoForward = loggedDate < today;
+
   return (
-    <div className="app">
-      <header className="app-header app-header--row">
-        <div>
-          <h1>Calorie Counter</h1>
-          <p className="app-header__tagline">{formatDisplayDate(loggedDate)}</p>
-        </div>
-        <button type="button" className="btn btn--ghost btn--small" onClick={() => signOut()}>
-          Sign out
+    <>
+      <div className="diary-day-nav">
+        <button
+          type="button"
+          className="btn btn--ghost btn--small"
+          onClick={() => setLoggedDate((d) => addDays(d, -1))}
+          aria-label="Previous day"
+        >
+          ←
         </button>
-      </header>
+        <p className="diary-day-nav__date">{formatDisplayDate(loggedDate)}</p>
+        <button
+          type="button"
+          className="btn btn--ghost btn--small"
+          disabled={!canGoForward}
+          onClick={() => setLoggedDate((d) => addDays(d, 1))}
+          aria-label="Next day"
+        >
+          →
+        </button>
+      </div>
 
-      <main className="app-main">
-        <ConnectedAccounts />
-        <DailySummary totals={totals} goals={goals} />
+      <ConnectedAccounts />
+      <TrackingCalendar
+        selectedDate={loggedDate}
+        loggedDates={loggedDates}
+        onSelectDate={setLoggedDate}
+      />
+      <DailySummary totals={totals} goals={goals} />
 
-        <section className="log-section">
-          <h2 className="log-section__title">Logged today</h2>
-          {error ? (
-            <p className="status status--error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          {loading ? <p className="status">Loading…</p> : null}
-          {!loading && logs.length === 0 ? (
-            <p className="status">Nothing logged yet. Tap + to add food.</p>
-          ) : null}
-          <ul className="log-list">
-            {logs.map((entry) => (
-              <LogEntryRow
-                key={entry.id}
-                entry={entry}
-                onDelete={() => handleDelete(entry.id)}
-                deleting={deletingId === entry.id}
-              />
-            ))}
-          </ul>
-        </section>
-      </main>
+      <section className="log-section">
+        <h2 className="log-section__title">
+          {loggedDate === today ? "Logged today" : `Logged ${loggedDate}`}
+        </h2>
+        {error ? (
+          <p className="status status--error" role="alert">
+            {error}
+          </p>
+        ) : null}
+        {loading ? <p className="status">Loading…</p> : null}
+        {!loading && logs.length === 0 ? (
+          <p className="status">Nothing logged. Tap + to add food.</p>
+        ) : null}
+        <ul className="log-list">
+          {logs.map((entry) => (
+            <LogEntryRow
+              key={entry.id}
+              entry={entry}
+              onDelete={() => handleDelete(entry.id)}
+              deleting={deletingId === entry.id}
+            />
+          ))}
+        </ul>
+      </section>
 
-      <button
-        type="button"
-        className="fab"
-        aria-label="Add food"
-        onClick={() => setShowAdd(true)}
-      >
+      <button type="button" className="fab" aria-label="Add food" onClick={() => setShowAdd(true)}>
         +
       </button>
 
@@ -109,9 +142,9 @@ export function HomeScreen() {
           userId={user.id}
           loggedDate={loggedDate}
           onClose={() => setShowAdd(false)}
-          onAdded={loadLogs}
+          onAdded={handleAdded}
         />
       ) : null}
-    </div>
+    </>
   );
 }

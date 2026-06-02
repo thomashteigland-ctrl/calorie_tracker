@@ -1,6 +1,6 @@
 import { AuthScreen } from "./components/AuthScreen";
 import { GoalsSetup } from "./components/GoalsSetup";
-import { HomeScreen } from "./components/HomeScreen";
+import { MainShell } from "./components/MainShell";
 import { useAuth } from "./contexts/AuthContext";
 
 export default function App() {
@@ -30,5 +30,5 @@ export default function App() {
     return <GoalsSetup />;
   }
 
-  return <HomeScreen />;
+  return <MainShell />;
 }

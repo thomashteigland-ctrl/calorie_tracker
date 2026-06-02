@@ -773,3 +773,367 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 0 0.65rem;
 }
+
+/* App shell + bottom nav */
+.app-shell {
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4rem;
+}
+
+.app-shell__header {
+  padding: 1rem 1rem 0;
+}
+
+.app-shell__header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.app-shell__content {
+  flex: 1;
+  padding: 0 1rem 1rem;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  z-index: 50;
+}
+
+.bottom-nav__item {
+  flex: 1;
+  padding: 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bottom-nav__item--active {
+  color: var(--accent);
+}
+
+/* Macro donuts */
+.daily-summary {
+  padding: 0;
+  border: none;
+  background: transparent;
+  margin-bottom: 1rem;
+}
+
+.macro-donuts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.macro-donut {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.macro-donut--large {
+  grid-column: 1 / -1;
+}
+
+.macro-donut__center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -58%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.macro-donut--large .macro-donut__center {
+  transform: translate(-50%, -52%);
+}
+
+.macro-donut__value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.macro-donut--large .macro-donut__value {
+  font-size: 1.75rem;
+}
+
+.macro-donut__sub {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.macro-donut__label {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.macro-donut__detail {
+  display: block;
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+/* Tracking calendar */
+.tracking-calendar {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.tracking-calendar__title {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+}
+
+.tracking-calendar__hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.tracking-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 0.25rem;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tracking-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.tracking-calendar__day {
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.tracking-calendar__day--logged {
+  background: rgba(61, 214, 140, 0.2);
+  border-color: var(--accent-dim);
+  color: var(--text);
+}
+
+.tracking-calendar__day--selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.tracking-calendar__day--today {
+  font-weight: 700;
+}
+
+.tracking-calendar__day--pad {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.diary-day-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.diary-day-nav__date {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Add food toolbar */
+.add-food-toolbar {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.add-food-toolbar__search {
+  flex: 1;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.add-food-toolbar__icon {
+  width: 2.75rem;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.add-food-toolbar__icon--active {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.add-food-toolbar__icon--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.add-food-history__title {
+  margin: 0.75rem 0 0.4rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.add-food-manual-link {
+  display: block;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+/* Progress screen */
+.progress-screen__title {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.progress-card {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 1rem;
+}
+
+.progress-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.progress-card__big {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.progress-card__hint {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.progress-card--disabled {
+  opacity: 0.7;
+}
+
+.progress-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.progress-bars li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.progress-bars__val--deficit {
+  color: var(--accent);
+}
+
+.weight-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.weight-form label {
+  flex: 1;
+}
+
+.weight-form label span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.weight-form input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.weight-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.weight-history li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.fab {
+  bottom: 4.5rem;
+}
