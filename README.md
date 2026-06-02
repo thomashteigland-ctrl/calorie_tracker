@@ -47,6 +47,15 @@ Run migrations in order (SQL editor):
 3. `supabase/migrations/20250604120000_foods_barcode_scan.sql`
 4. `supabase/migrations/20250605120000_google_oauth_profile.sql`
 5. `supabase/migrations/20250606120000_progress_tracking.sql` (weight + steps tables)
+6. `supabase/migrations/20250607120000_diary_closures.sql` (close diary for streak / cumulative deficit)
+7. `supabase/migrations/20250608120000_profile_energy.sql` (height, birth date, sex, activity for BMR / TDEE)
+
+### Static assets (icons, images)
+
+- **`public/`** — served as-is at the site root. Example: `public/icons/barcode.png` → `<img src="/icons/barcode.png" alt="" />` (path starts with `/`, **do not** `import` from `public/`).
+- **`src/assets/`** — import in components (Vite bundles and hashes filenames): `import icon from "../assets/icon.svg"`.
+
+`public/icons/` is created for icon files; add PNG/SVG there or under `src/assets/` depending on whether you need imports.
 
 ### Scanning packaged foods
 

@@ -54,6 +54,12 @@ export async function deleteFoodLog(logId: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function updateFoodLogPortions(logId: string, portions: number): Promise<void> {
+  const { error } = await supabase.from("food_logs").update({ portions }).eq("id", logId);
+
+  if (error) throw error;
+}
+
 export async function getLoggedDates(userId: string, fromDate: string, toDate: string): Promise<string[]> {
   const { data, error } = await supabase
     .from("food_logs")

@@ -16,3 +16,11 @@ export type CumulativeProgress = {
   days: DailyCalorieSummary[];
   totalBalance: number;
 };
+
+export type DiaryStreakStats = {
+  streakDays: DailyCalorieSummary[];
+  streakLength: number;
+  totalBalance: number;
+  unclosedDates: string[];
+  canShowCumulative: boolean;
+};

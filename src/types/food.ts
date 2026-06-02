@@ -9,6 +9,7 @@ export type Food = {
   protein_per_100g: number | null;
   carbs_per_100g: number | null;
   fat_per_100g: number | null;
+  raw_nutrients?: unknown;
 };
 
 export type FoodInsert = Food & {

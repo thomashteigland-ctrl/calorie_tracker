@@ -8,6 +8,9 @@ import { macrosForPortions } from "../lib/macros";
 import { displayName, type Food } from "../types/food";
 import type { RecentFood } from "../types/recentFood";
 
+/** Static file in `public/icons/` — use as URL, do not `import` from public. */
+const BARCODE_ICON_SRC = "/icons/barcode.png";
+
 type Props = {
   userId: string;
   loggedDate: string;
@@ -149,7 +152,7 @@ export function AddFoodModal({ userId, loggedDate, onClose, onAdded }: Props) {
               setManualOpen(false);
             }}
           >
-            ▦
+            <img src={BARCODE_ICON_SRC} alt="" className="add-food-toolbar__icon-img" />
           </button>
           <button
             type="button"

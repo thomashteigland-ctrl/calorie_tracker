@@ -1,31 +1,45 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { deleteFoodLog, getLoggedDates, getLogsForDate } from "../api/logs";
+import { closeDiary, getClosedDates, isDiaryClosed } from "../api/diary";
+import { getLogsForDate } from "../api/logs";
 import { useAuth } from "../contexts/AuthContext";
-import { addDays, formatDisplayDate, last28Days, todayLocalDate } from "../lib/dates";
+import { addDays, todayLocalDate } from "../lib/dates";
+import type { DailyEnergy } from "../lib/energy";
 import { addTotals, EMPTY_TOTALS, macrosForPortions } from "../lib/macros";
 import type { FoodLogWithFood } from "../types/foodLog";
 import { AddFoodModal } from "./AddFoodModal";
 import { ConnectedAccounts } from "./ConnectedAccounts";
 import { DailySummary } from "./DailySummary";
+import { DiaryDateNav } from "./DiaryDateNav";
+import { FoodLogDetailModal } from "./FoodLogDetailModal";
 import { LogEntryRow } from "./LogEntryRow";
-import { TrackingCalendar } from "./TrackingCalendar";
 
-export function HomeScreen() {
+type Props = {
+  energy: DailyEnergy | null;
+  targetConfigured: boolean;
+  onOpenTarget: () => void;
+};
+
+export function HomeScreen({ energy, targetConfigured, onOpenTarget }: Props) {
   const { user, goals } = useAuth();
   const [loggedDate, setLoggedDate] = useState(todayLocalDate);
-  const [loggedDates, setLoggedDates] = useState<Set<string>>(new Set());
+  const [closedDates, setClosedDates] = useState<Set<string>>(new Set());
+  const [isClosed, setIsClosed] = useState(false);
   const [logs, setLogs] = useState<FoodLogWithFood[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<FoodLogWithFood | null>(null);
+  const [closing, setClosing] = useState(false);
 
-  const loadCalendar = useCallback(async () => {
+  const loadMeta = useCallback(async () => {
     if (!user) return;
-    const range = last28Days();
-    const dates = await getLoggedDates(user.id, range[0], range[range.length - 1]);
-    setLoggedDates(new Set(dates));
-  }, [user]);
+    const today = todayLocalDate();
+    const from = addDays(today, -120);
+    const closed = await getClosedDates(user.id, from, today);
+    setClosedDates(closed);
+    const closedToday = await isDiaryClosed(user.id, loggedDate);
+    setIsClosed(closedToday);
+  }, [user, loggedDate]);
 
   const loadLogs = useCallback(async () => {
     if (!user) return;
@@ -42,8 +56,8 @@ export function HomeScreen() {
   }, [user, loggedDate]);
 
   useEffect(() => {
-    void loadCalendar();
-  }, [loadCalendar]);
+    void loadMeta();
+  }, [loadMeta]);
 
   useEffect(() => {
     void loadLogs();
@@ -54,59 +68,55 @@ export function HomeScreen() {
     [logs],
   );
 
-  async function handleDelete(logId: string) {
-    setDeletingId(logId);
-    try {
-      await deleteFoodLog(logId);
-      setLogs((prev) => prev.filter((l) => l.id !== logId));
-      void loadCalendar();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not remove entry");
-    } finally {
-      setDeletingId(null);
-    }
-  }
-
   function handleAdded() {
     void loadLogs();
-    void loadCalendar();
+    void loadMeta();
+  }
+
+  async function handleCloseDiary() {
+    if (!user || isClosed) return;
+    setClosing(true);
+    setError(null);
+    try {
+      await closeDiary(user.id, loggedDate);
+      await loadMeta();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not close diary");
+    } finally {
+      setClosing(false);
+    }
   }
 
   if (!user || !goals) return null;
 
   const today = todayLocalDate();
-  const canGoForward = loggedDate < today;
+  const canClose = !isClosed && loggedDate <= today;
 
   return (
     <>
-      <div className="diary-day-nav">
-        <button
-          type="button"
-          className="btn btn--ghost btn--small"
-          onClick={() => setLoggedDate((d) => addDays(d, -1))}
-          aria-label="Previous day"
-        >
-          ←
-        </button>
-        <p className="diary-day-nav__date">{formatDisplayDate(loggedDate)}</p>
-        <button
-          type="button"
-          className="btn btn--ghost btn--small"
-          disabled={!canGoForward}
-          onClick={() => setLoggedDate((d) => addDays(d, 1))}
-          aria-label="Next day"
-        >
-          →
-        </button>
-      </div>
+      <DiaryDateNav selectedDate={loggedDate} closedDates={closedDates} onSelectDate={setLoggedDate} />
 
       <ConnectedAccounts />
-      <TrackingCalendar
-        selectedDate={loggedDate}
-        loggedDates={loggedDates}
-        onSelectDate={setLoggedDate}
+      <DailySummary
+        totals={totals}
+        goals={goals}
+        energy={energy}
+        targetConfigured={targetConfigured}
+        onOpenTarget={onOpenTarget}
       />
-      <DailySummary totals={totals} goals={goals} />
+
+      {canClose ? (
+        <button
+          type="button"
+          className="btn btn--primary btn--block close-diary-btn"
+          disabled={closing || logs.length === 0}
+          onClick={() => void handleCloseDiary()}
+        >
+          {closing ? "Closing…" : "Close diary for this day"}
+        </button>
+      ) : isClosed ? (
+        <p className="status status--success close-diary-status">Diary closed — counts toward your streak.</p>
+      ) : null}
 
       <section className="log-section">
         <h2 className="log-section__title">
@@ -123,12 +133,7 @@ export function HomeScreen() {
         ) : null}
         <ul className="log-list">
           {logs.map((entry) => (
-            <LogEntryRow
-              key={entry.id}
-              entry={entry}
-              onDelete={() => handleDelete(entry.id)}
-              deleting={deletingId === entry.id}
-            />
+            <LogEntryRow key={entry.id} entry={entry} onOpen={() => setSelectedEntry(entry)} />
           ))}
         </ul>
       </section>
@@ -143,6 +148,21 @@ export function HomeScreen() {
           loggedDate={loggedDate}
           onClose={() => setShowAdd(false)}
           onAdded={handleAdded}
+        />
+      ) : null}
+
+      {selectedEntry ? (
+        <FoodLogDetailModal
+          entry={selectedEntry}
+          onClose={() => setSelectedEntry(null)}
+          onUpdated={() => {
+            void loadLogs();
+            void loadMeta();
+          }}
+          onDeleted={() => {
+            setLogs((prev) => prev.filter((l) => l.id !== selectedEntry.id));
+            void loadMeta();
+          }}
         />
       ) : null}
     </>

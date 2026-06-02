@@ -267,6 +267,41 @@ body {
   padding: 1.5rem;
 }
 
+.auth-card--wide {
+  max-width: 420px;
+}
+
+.goals-form__section {
+  border: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+}
+
+.goals-form__section legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.65rem;
+  color: var(--muted);
+}
+
+.goals-form__tdee {
+  font-size: 0.85rem;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.energy-stats {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
 .auth-card {
   width: 100%;
   max-width: 400px;
@@ -322,7 +357,8 @@ body {
   margin-bottom: 0.35rem;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form select {
   width: 100%;
   padding: 0.65rem 0.85rem;
   font-size: 1rem;
@@ -330,6 +366,23 @@ body {
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.auth-form select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+}
+
+.auth-form input:focus,
+.auth-form select:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .goals-form {
@@ -509,25 +562,84 @@ body {
   gap: 0.5rem;
 }
 
-.log-entry {
+.log-entry--clickable {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.log-entry--clickable:hover {
+  background: var(--surface-hover);
 }
 
 .log-entry__title {
   font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.log-entry__meta {
-  font-size: 0.8rem;
+.log-entry__kcal {
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.log-detail-macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
   color: var(--muted);
-  margin-top: 0.2rem;
+}
+
+.log-detail-nutrients__title {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.nutrient-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.nutrient-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.nutrient-list li span:last-child {
+  color: var(--muted);
+}
+
+.log-detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
 .fab {
@@ -826,97 +938,53 @@ body {
   color: var(--accent);
 }
 
-/* Macro donuts */
-.daily-summary {
-  padding: 0;
+/* Diary date nav + calendar picker */
+.diary-date-nav {
+  margin-bottom: 0.75rem;
+}
+
+.diary-date-nav__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.diary-date-nav__date-btn {
+  flex: 1;
   border: none;
   background: transparent;
-  margin-bottom: 1rem;
-}
-
-.macro-donuts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  align-items: start;
-}
-
-.macro-donut {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.macro-donut--large {
-  grid-column: 1 / -1;
-}
-
-.macro-donut__center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -58%);
-  text-align: center;
-  pointer-events: none;
-}
-
-.macro-donut--large .macro-donut__center {
-  transform: translate(-50%, -52%);
-}
-
-.macro-donut__value {
-  display: block;
-  font-size: 1.25rem;
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
   font-weight: 700;
-  line-height: 1.1;
+  cursor: pointer;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
 }
 
-.macro-donut--large .macro-donut__value {
-  font-size: 1.75rem;
+.diary-date-nav__date-btn:hover {
+  background: var(--surface-hover);
 }
 
-.macro-donut__sub {
-  font-size: 0.65rem;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-
-.macro-donut__label {
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.macro-donut__detail {
-  display: block;
-  font-weight: 400;
-  color: var(--muted);
-  font-size: 0.7rem;
-}
-
-/* Tracking calendar */
-.tracking-calendar {
-  margin-bottom: 1rem;
-  padding: 0.85rem 1rem;
+.diary-calendar-picker {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
 }
 
-.tracking-calendar__title {
-  margin: 0 0 0.2rem;
-  font-size: 0.95rem;
+.diary-calendar-picker__month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
-.tracking-calendar__hint {
-  margin: 0 0 0.65rem;
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
-.tracking-calendar__weekdays {
+.diary-calendar-picker__weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
@@ -926,54 +994,300 @@ body {
   text-align: center;
 }
 
-.tracking-calendar__grid {
+.diary-calendar-picker__grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
 }
 
-.tracking-calendar__day {
+.diary-calendar-picker__day {
   aspect-ratio: 1;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg);
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   cursor: pointer;
   padding: 0;
 }
 
-.tracking-calendar__day--logged {
-  background: rgba(61, 214, 140, 0.2);
+.diary-calendar-picker__day--closed {
+  background: rgba(61, 214, 140, 0.25);
   border-color: var(--accent-dim);
   color: var(--text);
+  font-weight: 600;
 }
 
-.tracking-calendar__day--selected {
+.diary-calendar-picker__day--today-open {
+  background: rgba(240, 140, 60, 0.25);
+  border-color: #e08a3a;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.diary-calendar-picker__day--today.diary-calendar-picker__day--closed {
+  background: rgba(61, 214, 140, 0.35);
+  border-color: var(--accent);
+}
+
+.diary-calendar-picker__day--selected {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
-.tracking-calendar__day--today {
-  font-weight: 700;
-}
-
-.tracking-calendar__day--pad {
+.diary-calendar-picker__day--pad {
   visibility: hidden;
   pointer-events: none;
 }
 
-.diary-day-nav {
+.diary-calendar-picker__day:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.diary-calendar-picker__legend {
+  margin: 0.5rem 0 0;
+  font-size: 0.7rem;
+  color: var(--muted);
   display: flex;
+  gap: 1rem;
   align-items: center;
-  justify-content: space-between;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 2px;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+
+.legend-dot--closed {
+  background: var(--accent-dim);
+}
+
+.legend-dot--today {
+  background: #e08a3a;
+}
+
+/* Daily summary */
+.daily-summary {
+  padding: 0;
+  border: none;
+  background: transparent;
+  margin-bottom: 1rem;
+}
+
+.calorie-equation {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
   margin-bottom: 0.75rem;
 }
 
-.diary-day-nav__date {
-  margin: 0;
+.calorie-equation__col {
+  text-align: center;
+}
+
+.calorie-equation__col--center {
+  padding: 0 0.5rem;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.calorie-equation__value {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.calorie-equation__net {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.calorie-equation__net--deficit {
+  color: var(--accent);
+}
+
+.calorie-equation__net--surplus {
+  color: #f5a623;
+}
+
+.calorie-equation__net--on {
+  color: var(--muted);
+}
+
+.calorie-equation__label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 0.15rem;
+}
+
+.target-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.target-prompt__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.target-prompt__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.target-prompt__value {
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.target-prompt__value--muted {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.energy-stats--compact {
+  margin: 0.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.macro-lines {
+  display: flex;
+  flex-direction: column;
+}
+
+.macro-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.macro-line:last-child {
+  border-bottom: none;
+}
+
+.macro-line__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.macro-line__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.macro-line__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.macro-line__stats {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.macro-donut {
+  position: relative;
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+}
+
+.macro-donut__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.macro-donut__value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.macro-donut__sub {
+  font-size: 0.55rem;
+  color: var(--muted);
+  margin-top: 0.05rem;
+}
+
+.macro-row__track {
+  height: 6px;
+  background: var(--bg);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.macro-row__fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.close-diary-btn {
+  margin-bottom: 0.75rem;
+}
+
+.close-diary-status {
+  margin-bottom: 0.75rem;
+}
+
+.progress-warn {
+  margin: 0.75rem 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(240, 140, 60, 0.12);
+  border: 1px solid #e08a3a;
+  font-size: 0.85rem;
+}
+
+.progress-warn ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.progress-card__sub {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.progress-card__big--muted {
+  font-size: 0.95rem;
+  color: var(--muted);
+  font-weight: 500;
 }
 
 /* Add food toolbar */
@@ -993,10 +1307,22 @@ body {
   font-size: 1rem;
 }
 
+.add-food-toolbar__icon-img {
+  width: 1.35rem;
+  height: 1.35rem;
+  object-fit: contain;
+  display: block;
+  filter: invert(1);
+  opacity: 0.9;
+}
+
 .add-food-toolbar__icon {
   width: 2.75rem;
   flex-shrink: 0;
   border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 10px;
   background: var(--surface);
   color: var(--text);

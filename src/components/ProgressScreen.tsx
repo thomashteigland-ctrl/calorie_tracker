@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
-import { getCumulativeCalorieProgress } from "../api/logs";
-import { getWeightLogs, upsertWeightLog } from "../api/progress";
+import { getDiaryStreakStats } from "../api/diary";
+import { getWeightLogs } from "../api/progress";
 import { useAuth } from "../contexts/AuthContext";
-import { todayLocalDate } from "../lib/dates";
-import type { CumulativeProgress, WeightLog } from "../types/progress";
+import type { DailyEnergy } from "../lib/energy";
+import type { DiaryStreakStats, WeightLog } from "../types/progress";
+import { TargetSetupPrompt } from "./TargetSetupPrompt";
 
-export function ProgressScreen() {
+type Props = {
+  energy: DailyEnergy | null;
+  targetConfigured: boolean;
+  onOpenTarget: () => void;
+};
+
+export function ProgressScreen({ energy, targetConfigured, onOpenTarget }: Props) {
   const { user, goals } = useAuth();
-  const [calorieProgress, setCalorieProgress] = useState<CumulativeProgress | null>(null);
+  const [streak, setStreak] = useState<DiaryStreakStats | null>(null);
   const [weights, setWeights] = useState<WeightLog[]>([]);
-  const [weightInput, setWeightInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,11 +24,11 @@ export function ProgressScreen() {
     setLoading(true);
     setError(null);
     try {
-      const [cal, w] = await Promise.all([
-        getCumulativeCalorieProgress(user.id, goals.daily_calories, 30),
+      const [s, w] = await Promise.all([
+        getDiaryStreakStats(user.id, goals.daily_calories),
         getWeightLogs(user.id, 30),
       ]);
-      setCalorieProgress(cal);
+      setStreak(s);
       setWeights(w);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load progress");
@@ -35,29 +41,16 @@ export function ProgressScreen() {
     void load();
   }, [load]);
 
-  async function handleSaveWeight(e: React.FormEvent) {
-    e.preventDefault();
-    if (!user) return;
-    const kg = Number(weightInput);
-    if (!(kg > 0)) return;
-    try {
-      await upsertWeightLog(user.id, todayLocalDate(), kg);
-      setWeightInput("");
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save weight");
-    }
-  }
-
   if (!user || !goals) return null;
 
-  const balance = calorieProgress?.totalBalance ?? 0;
-  const balanceLabel =
-    balance < 0
-      ? `${Math.abs(Math.round(balance))} kcal cumulative deficit`
+  const balance = streak?.totalBalance ?? 0;
+  const balanceLabel = !streak?.canShowCumulative
+    ? "Close your diary on consecutive days to build a streak"
+    : balance < 0
+      ? `${Math.abs(Math.round(balance))} kcal deficit (${streak.streakLength}-day streak)`
       : balance > 0
-        ? `${Math.round(balance)} kcal cumulative surplus`
-        : "On target over the period";
+        ? `${Math.round(balance)} kcal surplus (${streak.streakLength}-day streak)`
+        : `On target (${streak.streakLength}-day streak)`;
 
   return (
     <div className="progress-screen">
@@ -70,53 +63,65 @@ export function ProgressScreen() {
       ) : null}
 
       <section className="progress-card">
-        <h3>Calorie balance (30 days)</h3>
-        <p className="progress-card__big">{balanceLabel}</p>
+        <TargetSetupPrompt
+          configured={targetConfigured}
+          maintenanceKcal={energy?.tdee ?? null}
+          onOpen={onOpenTarget}
+        />
+        {energy ? (
+          <p className="energy-stats energy-stats--compact">
+            <span>BMR {Math.round(energy.bmr)}</span>
+            <span>Activity +{Math.round(energy.activityKcal)}</span>
+            <span>Maintenance {Math.round(energy.tdee)} kcal</span>
+          </p>
+        ) : null}
+      </section>
+
+      <section className="progress-card">
+        <h3>Diary streak</h3>
+        <p className="progress-card__big">{streak?.streakLength ?? 0} days in a row</p>
         <p className="progress-card__hint">
-          Sum of (eaten − daily goal) per day. Negative = net deficit over time.
+          Only <strong>closed</strong> days count. Close each day in Diary when you&apos;re done logging.
         </p>
-        {calorieProgress ? (
-          <ul className="progress-bars">
-            {calorieProgress.days
-              .filter((d) => d.consumed > 0)
-              .slice(-14)
-              .map((d) => (
-                <li key={d.logged_date}>
-                  <span className="progress-bars__date">{d.logged_date.slice(5)}</span>
-                  <span
-                    className={`progress-bars__val${d.balance < 0 ? " progress-bars__val--deficit" : ""}`}
-                  >
-                    {d.balance > 0 ? "+" : ""}
-                    {Math.round(d.balance)} kcal
-                  </span>
-                </li>
+
+        {streak && streak.unclosedDates.length > 0 ? (
+          <div className="progress-warn" role="alert">
+            <strong>Unclosed days</strong> — cumulative balance pauses until these are closed:
+            <ul>
+              {streak.unclosedDates.slice(0, 8).map((d) => (
+                <li key={d}>{d}</li>
               ))}
+            </ul>
+          </div>
+        ) : null}
+
+        <h4 className="progress-card__sub">Cumulative balance (closed streak only)</h4>
+        <p className={`progress-card__big${streak?.canShowCumulative ? "" : " progress-card__big--muted"}`}>
+          {balanceLabel}
+        </p>
+
+        {streak && streak.streakDays.length > 0 ? (
+          <ul className="progress-bars">
+            {streak.streakDays.map((d) => (
+              <li key={d.logged_date}>
+                <span className="progress-bars__date">{d.logged_date.slice(5)}</span>
+                <span
+                  className={`progress-bars__val${d.balance < 0 ? " progress-bars__val--deficit" : ""}`}
+                >
+                  {d.balance > 0 ? "+" : ""}
+                  {Math.round(d.balance)} kcal
+                </span>
+              </li>
+            ))}
           </ul>
         ) : null}
       </section>
 
       <section className="progress-card">
-        <h3>Weight</h3>
-        <form onSubmit={handleSaveWeight} className="weight-form">
-          <label>
-            <span>Today&apos;s weight (kg)</span>
-            <input
-              type="number"
-              step={0.1}
-              min={20}
-              max={300}
-              value={weightInput}
-              onChange={(e) => setWeightInput(e.target.value)}
-              placeholder="e.g. 82.5"
-            />
-          </label>
-          <button type="submit" className="btn btn--primary btn--small" disabled={!weightInput}>
-            Save
-          </button>
-        </form>
+        <h3>Weight history</h3>
         {weights.length > 0 ? (
           <ul className="weight-history">
-            {weights.slice(0, 7).map((w) => (
+            {weights.slice(0, 14).map((w) => (
               <li key={w.logged_date}>
                 <span>{w.logged_date}</span>
                 <span>{w.weight_kg} kg</span>
@@ -124,13 +129,13 @@ export function ProgressScreen() {
             ))}
           </ul>
         ) : (
-          <p className="status">No weight entries yet.</p>
+          <p className="status">No weight logged yet — add weight in your target.</p>
         )}
       </section>
 
       <section className="progress-card progress-card--disabled">
         <h3>Steps</h3>
-        <p className="status">Coming soon — connect a device or log steps manually.</p>
+        <p className="status">Coming soon.</p>
       </section>
     </div>
   );

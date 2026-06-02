@@ -5,7 +5,7 @@ import { foodIdForUserProduct } from "../lib/barcode";
 import type { Food, FoodInsert } from "../types/food";
 
 export const FOOD_COLUMNS =
-  "id, barcode, name_no, name_en, source, locale, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g";
+  "id, barcode, name_no, name_en, source, locale, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, raw_nutrients";
 
 export async function searchFoods(query: string, limit = 25): Promise<Food[]> {
   const q = query.trim();

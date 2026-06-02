@@ -1,35 +1,21 @@
 type Props = {
-  label: string;
   current: number;
   goal: number;
-  unit: string;
   color: string;
   size?: "large" | "small";
-  showRemaining?: boolean;
 };
 
-export function MacroDonut({
-  label,
-  current,
-  goal,
-  unit,
-  color,
-  size = "small",
-  showRemaining = true,
-}: Props) {
-  const dim = size === "large" ? 120 : 72;
-  const stroke = size === "large" ? 10 : 7;
+export function MacroDonut({ current, goal, color, size = "small" }: Props) {
+  const dim = size === "large" ? 120 : 56;
+  const stroke = size === "large" ? 10 : 6;
   const r = (dim - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = goal > 0 ? Math.min(current / goal, 1) : 0;
   const offset = c * (1 - pct);
-  const remaining = Math.max(goal - current, 0);
-  const centerValue = showRemaining ? Math.round(remaining) : Math.round(current);
-  const centerSub = showRemaining ? "left" : "eaten";
 
   return (
-    <div className={`macro-donut macro-donut--${size}`}>
-      <svg width={dim} height={dim} viewBox={`0 0 ${dim} ${dim}`} aria-hidden="true">
+    <div className={`macro-donut macro-donut--${size}`} aria-hidden="true">
+      <svg width={dim} height={dim} viewBox={`0 0 ${dim} ${dim}`}>
         <circle
           cx={dim / 2}
           cy={dim / 2}
@@ -52,15 +38,9 @@ export function MacroDonut({
         />
       </svg>
       <div className="macro-donut__center">
-        <span className="macro-donut__value">{centerValue}</span>
-        <span className="macro-donut__sub">{centerSub}</span>
+        <span className="macro-donut__value">{Math.round(current)}</span>
+        <span className="macro-donut__sub">g</span>
       </div>
-      <span className="macro-donut__label">
-        {label}
-        <span className="macro-donut__detail">
-          {Math.round(current)} / {Math.round(goal)} {unit}
-        </span>
-      </span>
     </div>
   );
 }

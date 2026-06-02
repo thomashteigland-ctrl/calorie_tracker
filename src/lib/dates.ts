@@ -44,3 +44,35 @@ export function last28Days(): string[] {
   }
   return days;
 }
+
+export function formatNavDate(iso: string, today: string): string {
+  if (iso === today) return "Today";
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
+/** Month grid cells for calendar picker (null = padding). */
+export function monthGrid(year: number, month: number): (string | null)[][] {
+  const first = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const startPad = (first.getDay() + 6) % 7;
+  const cells: (string | null)[] = [];
+  for (let i = 0; i < startPad; i++) cells.push(null);
+  for (let d = 1; d <= lastDay; d++) {
+    const m = String(month + 1).padStart(2, "0");
+    const day = String(d).padStart(2, "0");
+    cells.push(`${year}-${m}-${day}`);
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
+  const weeks: (string | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    weeks.push(cells.slice(i, i + 7));
+  }
+  return weeks;
+}
+
+export function parseIsoMonth(iso: string): { year: number; month: number } {
+  const [y, m] = iso.split("-").map(Number);
+  return { year: y, month: m - 1 };
+}
