@@ -1,0 +1,153 @@
+import type { Session, User } from "@supabase/supabase-js";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { getGoals } from "../api/goals";
+import { supabase } from "../lib/supabase";
+import type { UserGoals } from "../types/goals";
+
+type AuthState = {
+  session: Session | null;
+  user: User | null;
+  goals: UserGoals | null;
+  loading: boolean;
+  goalsLoading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    displayName?: string,
+  ) => Promise<{ needsEmailConfirmation: boolean }>;
+  resendSignupConfirmation: (email: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  refreshGoals: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthState | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [goals, setGoals] = useState<UserGoals | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [goalsLoading, setGoalsLoading] = useState(false);
+
+  const loadGoals = useCallback(async (userId: string) => {
+    setGoalsLoading(true);
+    try {
+      const data = await getGoals(userId);
+      setGoals(data);
+    } finally {
+      setGoalsLoading(false);
+    }
+  }, []);
+
+  const refreshGoals = useCallback(async () => {
+    if (!session?.user.id) return;
+    await loadGoals(session.user.id);
+  }, [loadGoals, session?.user.id]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user.id) {
+      setGoals(null);
+      return;
+    }
+    void loadGoals(session.user.id);
+  }, [session?.user.id, loadGoals]);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.message.toLowerCase().includes("email not confirmed")) {
+        throw new Error(
+          "Email not confirmed yet. Confirm via the link in your inbox, or turn off “Confirm email” in Supabase (Authentication → Providers → Email) for local dev.",
+        );
+      }
+      throw error;
+    }
+  }, []);
+
+  const signUp = useCallback(async (email: string, password: string, displayName?: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        ...(displayName ? { data: { display_name: displayName } } : {}),
+      },
+    });
+    if (error) throw error;
+    // No session = Supabase is waiting for email confirmation
+    return { needsEmailConfirmation: !data.session };
+  }, []);
+
+  const resendSignupConfirmation = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
+    if (error) throw error;
+  }, []);
+
+  const signOut = useCallback(async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    setGoals(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      session,
+      user: session?.user ?? null,
+      goals,
+      loading,
+      goalsLoading,
+      signIn,
+      signUp,
+      resendSignupConfirmation,
+      signOut,
+      refreshGoals,
+    }),
+    [
+      session,
+      goals,
+      loading,
+      goalsLoading,
+      signIn,
+      signUp,
+      resendSignupConfirmation,
+      signOut,
+      refreshGoals,
+    ],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthState {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
