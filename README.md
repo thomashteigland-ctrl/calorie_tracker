@@ -6,13 +6,14 @@ React + TypeScript web app backed by Supabase (`calories.foods`).
 
 Repo: [github.com/thomashteigland-ctrl/calorie_tracker](https://github.com/thomashteigland-ctrl/calorie_tracker)
 
-1. Import the repo in [Vercel](https://vercel.com) (framework: Vite — auto-detected).
-2. Add environment variables (Production + Preview):
+1. Import the repo in [Vercel](https://vercel.com).
+2. If it does not detect **Vite**, set manually: **Framework Preset** = Vite, **Build Command** = `npm run build`, **Output Directory** = `dist`, **Install Command** = `npm install`, **Root Directory** = `.` (leave blank).
+3. Add environment variables (Production + Preview):
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `VITE_SUPABASE_SCHEMA` = `calories`
-3. Deploy.
-4. In Supabase **Authentication → URL configuration**, add your Vercel URL (e.g. `https://calorie-tracker-xxx.vercel.app`) to **Site URL** and **Redirect URLs** (`https://…/**`).
+4. Deploy.
+5. In Supabase **Authentication → URL configuration**, add your Vercel URL (e.g. `https://calorie-tracker-xxx.vercel.app`) to **Site URL** and **Redirect URLs** (`https://…/**`).
 
 Camera/barcode scanning requires HTTPS — Vercel provides that for phone testing.
 
