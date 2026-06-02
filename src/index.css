@@ -445,10 +445,6 @@ body {
   font-size: 0.85rem;
 }
 
-.connected-accounts--ok {
-  color: var(--muted);
-}
-
 .connected-accounts__lead {
   margin: 0 0 0.5rem;
   color: var(--muted);

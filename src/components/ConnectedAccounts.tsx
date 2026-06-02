@@ -9,14 +9,6 @@ export function ConnectedAccounts() {
 
   const canLinkGoogle = hasEmailIdentity(identities) && !googleLinked;
 
-  if (!canLinkGoogle && googleLinked) {
-    return (
-      <p className="connected-accounts connected-accounts--ok">
-        Google is connected to this account.
-      </p>
-    );
-  }
-
   if (!canLinkGoogle) return null;
 
   async function handleLink() {
