@@ -45,6 +45,7 @@ Run migrations in order (SQL editor):
 1. `supabase/migrations/20250602170000_create_foods_table.sql`
 2. `supabase/migrations/20250603120000_profiles_goals_logs.sql`
 3. `supabase/migrations/20250604120000_foods_barcode_scan.sql`
+4. `supabase/migrations/20250605120000_google_oauth_profile.sql`
 
 ### Scanning packaged foods
 
@@ -54,14 +55,21 @@ If the product is missing, use **Add manually** and copy values from the nutriti
 
 **Note:** Reading full nutrition text from a photo (OCR) is not implemented yet — barcode → Open Food Facts, or manual entry from the label.
 
-**Auth (email + password, not magic links):**
+**Auth — email, password, and Google:**
 
 1. [Authentication → Providers → Email](https://supabase.com/dashboard/project/dhkzbmrlgcxaxrwimzjs/auth/providers) — enable Email.
-2. **For local dev:** turn **off** “Confirm email” so you can sign in immediately with password (no inbox link).
-3. [URL configuration](https://supabase.com/dashboard/project/dhkzbmrlgcxaxrwimzjs/auth/url-configuration): Site URL `http://localhost:5173`, Redirect URLs include `http://localhost:5173/**`.
-4. If confirmation emails never arrive: Supabase’s default mailer is unreliable — disable confirm email, or add custom SMTP under **Project Settings → Authentication**.
+2. **For local dev:** turn **off** “Confirm email” so password sign-in works without an inbox link.
+3. [URL configuration](https://supabase.com/dashboard/project/dhkzbmrlgcxaxrwimzjs/auth/url-configuration): add `http://localhost:5173/**` and your Vercel URL (`https://calorie-tracker-seven-beta.vercel.app/**`).
 
-After sign-up with confirm email **off**, use **Sign in** with the same password.
+**Google sign-in (one-time setup):**
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → **Create OAuth client ID** (type: Web application).
+2. **Authorized JavaScript origins:** `http://localhost:5173`, `https://calorie-tracker-seven-beta.vercel.app` (and your Supabase URL `https://dhkzbmrlgcxaxrwimzjs.supabase.co`).
+3. **Authorized redirect URIs:** copy the callback URL from [Supabase → Authentication → Providers → Google](https://supabase.com/dashboard/project/dhkzbmrlgcxaxrwimzjs/auth/providers) (looks like `https://dhkzbmrlgcxaxrwimzjs.supabase.co/auth/v1/callback`).
+4. Paste **Client ID** and **Client secret** into Supabase Google provider and enable Google.
+5. Redeploy Vercel after app changes; run migration `20250605120000_google_oauth_profile.sql` in SQL editor.
+
+First-time Google users get a profile row automatically, then the goals setup screen.
 
 ### Tables
 

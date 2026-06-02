@@ -5,7 +5,7 @@ import { getConfigIssues } from "../lib/env";
 const configIssues = getConfigIssues();
 
 export function AuthScreen() {
-  const { signIn, signUp, resendSignupConfirmation } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resendSignupConfirmation } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,6 +45,20 @@ export function AuthScreen() {
     }
   }
 
+  async function handleGoogle() {
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      await signInWithGoogle();
+      // Browser navigates away to Google; no further UI updates needed
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Google sign-in failed";
+      setError(msg.replace(/\n/g, " "));
+      setLoading(false);
+    }
+  }
+
   async function handleResend() {
     if (!email.trim()) {
       setError("Enter your email above first.");
@@ -66,9 +80,22 @@ export function AuthScreen() {
     <div className="auth-screen">
       <div className="auth-card">
         <h1>Calorie Counter</h1>
-        <p className="auth-card__lead">
-          Email and password — no magic link. After sign-up, use <strong>Sign in</strong> with the same
-          password.
+        <p className="auth-card__lead">Sign in to log food and track your daily goals.</p>
+
+        <button
+          type="button"
+          className="btn btn--google btn--block"
+          disabled={loading}
+          onClick={() => void handleGoogle()}
+        >
+          <span className="btn--google__icon" aria-hidden="true">
+            G
+          </span>
+          Continue with Google
+        </button>
+
+        <p className="auth-divider">
+          <span>or use email</span>
         </p>
 
         <div className="auth-tabs" role="tablist">

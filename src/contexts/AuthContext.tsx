@@ -26,6 +26,7 @@ type AuthState = {
     displayName?: string,
   ) => Promise<{ needsEmailConfirmation: boolean }>;
   resendSignupConfirmation: (email: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshGoals: () => Promise<void>;
 };
@@ -121,6 +122,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          queryParams: { prompt: "select_account" },
+        },
+      });
+      if (error) throw error;
+    } catch (err) {
+      throw new Error(formatAuthNetworkError(err));
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -137,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       resendSignupConfirmation,
+      signInWithGoogle,
       signOut,
       refreshGoals,
     }),
@@ -148,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       resendSignupConfirmation,
+      signInWithGoogle,
       signOut,
       refreshGoals,
     ],
