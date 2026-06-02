@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { getGoals } from "../api/goals";
+import { formatAuthNetworkError } from "../lib/env";
 import { supabase } from "../lib/supabase";
 import type { UserGoals } from "../types/goals";
 
@@ -53,10 +54,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadGoals, session?.user.id]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session);
+      })
+      .catch(() => {
+        // Network / config errors surface on sign-in attempt
+      })
+      .finally(() => setLoading(false));
 
     const {
       data: { subscription },
@@ -77,14 +83,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session?.user.id, loadGoals]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      if (error.message.toLowerCase().includes("email not confirmed")) {
-        throw new Error(
-          "Email not confirmed yet. Confirm via the link in your inbox, or turn off “Confirm email” in Supabase (Authentication → Providers → Email) for local dev.",
-        );
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        if (error.message.toLowerCase().includes("email not confirmed")) {
+          throw new Error(
+            "Email not confirmed yet. Confirm via the link in your inbox, or turn off “Confirm email” in Supabase (Authentication → Providers → Email) for local dev.",
+          );
+        }
+        throw error;
       }
-      throw error;
+    } catch (err) {
+      throw new Error(formatAuthNetworkError(err));
     }
   }, []);
 

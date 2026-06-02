@@ -1,15 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
+import { getConfigIssues, getSupabaseEnv } from "./env";
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const schema = import.meta.env.VITE_SUPABASE_SCHEMA ?? "calories";
+const { url, anonKey, schema } = getSupabaseEnv();
 
-if (!url || !anonKey) {
-  throw new Error(
-    "Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. Copy .env.example to .env.",
-  );
+if (!url?.trim() || !anonKey?.trim()) {
+  const issues = getConfigIssues();
+  throw new Error(issues.join(" ") || "Missing Supabase configuration.");
 }
 
-export const supabase = createClient(url, anonKey, {
+export const supabase = createClient(url.trim(), anonKey.trim(), {
   db: { schema },
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
 });

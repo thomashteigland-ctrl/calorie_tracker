@@ -8,12 +8,13 @@ Repo: [github.com/thomashteigland-ctrl/calorie_tracker](https://github.com/thoma
 
 1. Import the repo in [Vercel](https://vercel.com).
 2. If it does not detect **Vite**, set manually: **Framework Preset** = Vite, **Build Command** = `npm run build`, **Output Directory** = `dist`, **Install Command** = `npm install`, **Root Directory** = `.` (leave blank).
-3. Add environment variables (Production + Preview):
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
+3. Add environment variables for **Production and Preview** (names must match exactly):
+   - `VITE_SUPABASE_URL` = `https://dhkzbmrlgcxaxrwimzjs.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = legacy **anon public** key (`eyJ…`) from [API settings](https://supabase.com/dashboard/project/dhkzbmrlgcxaxrwimzjs/settings/api) — recommended over `sb_publishable_` if auth fails
    - `VITE_SUPABASE_SCHEMA` = `calories`
-4. Deploy.
-5. In Supabase **Authentication → URL configuration**, add your Vercel URL (e.g. `https://calorie-tracker-xxx.vercel.app`) to **Site URL** and **Redirect URLs** (`https://…/**`).
+4. **Redeploy** after adding or changing env vars (Vite embeds them at build time; saving alone is not enough).
+6. Deploy.
+7. In Supabase **Authentication → URL configuration**, add your Vercel URL (e.g. `https://calorie-tracker-xxx.vercel.app`) to **Site URL** and **Redirect URLs** (`https://…/**`).
 
 Camera/barcode scanning requires HTTPS — Vercel provides that for phone testing.
 

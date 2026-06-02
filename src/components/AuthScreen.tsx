@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { getConfigIssues } from "../lib/env";
+
+const configIssues = getConfigIssues();
 
 export function AuthScreen() {
   const { signIn, signUp, resendSignupConfirmation } = useAuth();
@@ -35,7 +38,8 @@ export function AuthScreen() {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      const msg = err instanceof Error ? err.message : "Authentication failed";
+      setError(msg.replace(/\n/g, " "));
     } finally {
       setLoading(false);
     }
@@ -87,6 +91,17 @@ export function AuthScreen() {
             Create account
           </button>
         </div>
+
+        {configIssues.length > 0 ? (
+          <div className="auth-config-warn" role="alert">
+            <strong>Configuration issue</strong>
+            <ul>
+              {configIssues.map((issue) => (
+                <li key={issue}>{issue}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="auth-form">
           {mode === "signup" ? (
