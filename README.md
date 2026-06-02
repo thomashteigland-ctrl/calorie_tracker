@@ -71,6 +71,18 @@ If the product is missing, use **Add manually** and copy values from the nutriti
 
 First-time Google users get a profile row automatically, then the goals setup screen.
 
+**Same email (password + Google) — no manual “merge” in the app:**
+
+Supabase [automatically links identities](https://supabase.com/docs/guides/auth/auth-identity-linking) when the **verified email matches**. One `auth.users` row → one `user_id` → your existing `profiles`, `user_goals`, and `food_logs` stay attached. You do **not** need to merge database rows in normal cases.
+
+| Situation | What happens |
+|-----------|----------------|
+| Email account exists, user signs in with Google (same verified email) | Google identity is linked to the **existing** user |
+| User signed up with email, wants Google later | Sign in with password → **Connect Google** on the home screen (requires [Manual linking](https://supabase.com/dashboard/project/dhkzbmrlgcxaxrwimzjs/auth/providers) enabled in Supabase) |
+| Two accounts already created (different UUIDs) | Rare if linking worked; fix in Supabase dashboard or support — would require moving rows between `user_id`s manually |
+
+Enable **Manual linking** under Authentication settings if **Connect Google** should work while logged in.
+
 ### Tables
 
 | Table | Purpose |

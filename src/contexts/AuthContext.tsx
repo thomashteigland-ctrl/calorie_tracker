@@ -1,4 +1,4 @@
-import type { Session, User } from "@supabase/supabase-js";
+import type { Session, User, UserIdentity } from "@supabase/supabase-js";
 import {
   createContext,
   useCallback,
@@ -10,6 +10,12 @@ import {
 } from "react";
 import { getGoals } from "../api/goals";
 import { formatAuthNetworkError } from "../lib/env";
+import {
+  clearOAuthHashFromUrl,
+  fetchUserIdentities,
+  formatOAuthCallbackError,
+  hasGoogleIdentity,
+} from "../lib/identities";
 import { supabase } from "../lib/supabase";
 import type { UserGoals } from "../types/goals";
 
@@ -27,8 +33,12 @@ type AuthState = {
   ) => Promise<{ needsEmailConfirmation: boolean }>;
   resendSignupConfirmation: (email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  linkGoogleAccount: () => Promise<void>;
+  identities: UserIdentity[];
+  googleLinked: boolean;
   signOut: () => Promise<void>;
   refreshGoals: () => Promise<void>;
+  refreshIdentities: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -38,6 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [goals, setGoals] = useState<UserGoals | null>(null);
   const [loading, setLoading] = useState(true);
   const [goalsLoading, setGoalsLoading] = useState(false);
+  const [identities, setIdentities] = useState<UserIdentity[]>([]);
+
+  const refreshIdentities = useCallback(async () => {
+    try {
+      const list = await fetchUserIdentities();
+      setIdentities(list);
+    } catch {
+      setIdentities([]);
+    }
+  }, []);
 
   const loadGoals = useCallback(async (userId: string) => {
     setGoalsLoading(true);
@@ -55,6 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadGoals, session?.user.id]);
 
   useEffect(() => {
+    const oauthError = formatOAuthCallbackError();
+    if (oauthError) {
+      clearOAuthHashFromUrl();
+      console.warn("OAuth error:", oauthError);
+    }
+
     supabase.auth
       .getSession()
       .then(({ data }) => {
@@ -74,6 +100,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      void refreshIdentities();
+    } else {
+      setIdentities([]);
+    }
+  }, [session?.user?.id, refreshIdentities]);
 
   useEffect(() => {
     if (!session?.user.id) {
@@ -122,14 +156,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
+  const googleOAuthOptions = {
+    redirectTo: `${window.location.origin}/`,
+    queryParams: { prompt: "select_account" as const },
+  };
+
   const signInWithGoogle = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/`,
-          queryParams: { prompt: "select_account" },
-        },
+        options: googleOAuthOptions,
+      });
+      if (error) throw error;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists")) {
+        throw new Error(
+          "An account with this email already exists. Sign in with your password first, then use Connect Google in the app.",
+        );
+      }
+      throw new Error(formatAuthNetworkError(err));
+    }
+  }, []);
+
+  /** Link Google to the current user (enable Manual linking in Supabase Auth settings). */
+  const linkGoogleAccount = useCallback(async () => {
+    try {
+      const { error } = await supabase.auth.linkIdentity({
+        provider: "google",
+        options: googleOAuthOptions,
       });
       if (error) throw error;
     } catch (err) {
@@ -154,20 +209,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       resendSignupConfirmation,
       signInWithGoogle,
+      linkGoogleAccount,
+      identities,
+      googleLinked: hasGoogleIdentity(identities),
       signOut,
       refreshGoals,
+      refreshIdentities,
     }),
     [
       session,
       goals,
       loading,
       goalsLoading,
+      identities,
       signIn,
       signUp,
       resendSignupConfirmation,
       signInWithGoogle,
+      linkGoogleAccount,
       signOut,
       refreshGoals,
+      refreshIdentities,
     ],
   );
 

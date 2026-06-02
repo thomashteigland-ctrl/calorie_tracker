@@ -436,6 +436,28 @@ body {
   white-space: nowrap;
 }
 
+.connected-accounts {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.85rem;
+}
+
+.connected-accounts--ok {
+  color: var(--muted);
+}
+
+.connected-accounts__lead {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+}
+
+.connected-accounts__refresh {
+  margin-left: 0.5rem;
+}
+
 .daily-summary {
   padding: 1rem;
   border: 1px solid var(--border);

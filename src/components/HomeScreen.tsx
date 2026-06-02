@@ -6,6 +6,7 @@ import { addTotals, EMPTY_TOTALS, macrosForPortions } from "../lib/macros";
 import type { FoodLogWithFood } from "../types/foodLog";
 import { AddFoodModal } from "./AddFoodModal";
 import { DailySummary } from "./DailySummary";
+import { ConnectedAccounts } from "./ConnectedAccounts";
 import { LogEntryRow } from "./LogEntryRow";
 
 export function HomeScreen() {
@@ -67,6 +68,7 @@ export function HomeScreen() {
       </header>
 
       <main className="app-main">
+        <ConnectedAccounts />
         <DailySummary totals={totals} goals={goals} />
 
         <section className="log-section">
