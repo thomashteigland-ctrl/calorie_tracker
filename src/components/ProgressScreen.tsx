@@ -4,15 +4,24 @@ import { getWeightLogs } from "../api/progress";
 import { useAuth } from "../contexts/AuthContext";
 import type { DailyEnergy } from "../lib/energy";
 import type { DiaryStreakStats, WeightLog } from "../types/progress";
+import { StepsLogForm } from "./StepsLogForm";
 import { TargetSetupPrompt } from "./TargetSetupPrompt";
 
 type Props = {
   energy: DailyEnergy | null;
+  weightKg: number | null;
   targetConfigured: boolean;
+  goalSummary?: string | null;
   onOpenTarget: () => void;
 };
 
-export function ProgressScreen({ energy, targetConfigured, onOpenTarget }: Props) {
+export function ProgressScreen({
+  energy,
+  weightKg,
+  targetConfigured,
+  goalSummary,
+  onOpenTarget,
+}: Props) {
   const { user, goals } = useAuth();
   const [streak, setStreak] = useState<DiaryStreakStats | null>(null);
   const [weights, setWeights] = useState<WeightLog[]>([]);
@@ -66,6 +75,8 @@ export function ProgressScreen({ energy, targetConfigured, onOpenTarget }: Props
         <TargetSetupPrompt
           configured={targetConfigured}
           maintenanceKcal={energy?.tdee ?? null}
+          calorieGoal={goals.daily_calories}
+          goalSummary={goalSummary}
           onOpen={onOpenTarget}
         />
         {energy ? (
@@ -133,9 +144,10 @@ export function ProgressScreen({ energy, targetConfigured, onOpenTarget }: Props
         )}
       </section>
 
-      <section className="progress-card progress-card--disabled">
+      <section className="progress-card">
         <h3>Steps</h3>
-        <p className="status">Coming soon.</p>
+        <p className="progress-card__hint">Logged steps feed the Burned column on your diary for today.</p>
+        <StepsLogForm userId={user.id} weightKg={weightKg} />
       </section>
     </div>
   );

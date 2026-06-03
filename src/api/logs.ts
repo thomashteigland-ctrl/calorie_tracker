@@ -12,9 +12,17 @@ const LOG_WITH_FOOD = `
   food_id,
   logged_date,
   portions,
+  meal_id,
   created_at,
-  food:foods (${FOOD_COLUMNS})
+  food:foods (${FOOD_COLUMNS}),
+  meal:diary_meals (id, name, sort_order)
 `;
+
+function normalizeLogRow(row: Record<string, unknown>): FoodLogWithFood {
+  const food = Array.isArray(row.food) ? row.food[0] : row.food;
+  const meal = Array.isArray(row.meal) ? row.meal[0] : row.meal;
+  return { ...row, food, meal: meal ?? null } as FoodLogWithFood;
+}
 
 export async function getLogsForDate(userId: string, loggedDate: string): Promise<FoodLogWithFood[]> {
   const { data, error } = await supabase
@@ -26,10 +34,7 @@ export async function getLogsForDate(userId: string, loggedDate: string): Promis
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => {
-    const food = Array.isArray(row.food) ? row.food[0] : row.food;
-    return { ...row, food } as FoodLogWithFood;
-  });
+  return (data ?? []).map((row) => normalizeLogRow(row as Record<string, unknown>));
 }
 
 export async function addFoodLog(
@@ -37,12 +42,14 @@ export async function addFoodLog(
   foodId: string,
   portions: number,
   loggedDate: string,
+  mealId: string,
 ): Promise<void> {
   const { error } = await supabase.from("food_logs").insert({
     user_id: userId,
     food_id: foodId,
     portions,
     logged_date: loggedDate,
+    meal_id: mealId,
   });
 
   if (error) throw error;
@@ -88,13 +95,13 @@ export async function getRecentFoods(userId: string, limit = 15): Promise<Recent
   const recent: RecentFood[] = [];
 
   for (const row of data ?? []) {
-    const food = Array.isArray(row.food) ? row.food[0] : row.food;
-    if (!food || seen.has(row.food_id)) continue;
-    seen.add(row.food_id);
+    const log = normalizeLogRow(row as Record<string, unknown>);
+    if (!log.food || seen.has(log.food_id)) continue;
+    seen.add(log.food_id);
     recent.push({
-      ...(food as RecentFood),
-      last_portions: row.portions,
-      last_logged_at: row.created_at,
+      ...(log.food as RecentFood),
+      last_portions: log.portions,
+      last_logged_at: log.created_at,
     });
     if (recent.length >= limit) break;
   }
@@ -121,10 +128,10 @@ export async function getCumulativeCalorieProgress(
 
   const byDate = new Map<string, number>();
   for (const row of data ?? []) {
-    const food = Array.isArray(row.food) ? row.food[0] : row.food;
-    if (!food) continue;
-    const kcal = macrosForPortions(food, row.portions).calories;
-    byDate.set(row.logged_date, (byDate.get(row.logged_date) ?? 0) + kcal);
+    const log = normalizeLogRow(row as Record<string, unknown>);
+    if (!log.food) continue;
+    const kcal = macrosForPortions(log.food, log.portions).calories;
+    byDate.set(log.logged_date, (byDate.get(log.logged_date) ?? 0) + kcal);
   }
 
   const days: DailyCalorieSummary[] = [];

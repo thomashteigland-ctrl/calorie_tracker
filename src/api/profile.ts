@@ -11,9 +11,9 @@ function isMissingColumnError(error: { message?: string; code?: string }): boole
   const msg = (error.message ?? "").toLowerCase();
   return (
     error.code === "42703" ||
-    msg.includes("does not exist") ||
-    msg.includes("column") ||
-    msg.includes("schema cache")
+    error.code === "PGRST204" ||
+    (msg.includes("could not find") && msg.includes("column")) ||
+    (msg.includes("column") && msg.includes("does not exist"))
   );
 }
 
@@ -60,16 +60,37 @@ export type ProfileEnergyInput = {
   activity_level: ActivityLevel;
 };
 
-export async function updateProfileEnergy(userId: string, input: ProfileEnergyInput): Promise<void> {
-  const { error } = await supabase
+export async function upsertProfileEnergy(
+  userId: string,
+  input: ProfileEnergyInput,
+): Promise<Profile> {
+  const { data, error } = await supabase
     .from("profiles")
-    .update({
-      height_cm: input.height_cm,
-      birth_date: input.birth_date,
-      sex: input.sex,
-      activity_level: input.activity_level,
-    })
-    .eq("id", userId);
+    .upsert(
+      {
+        id: userId,
+        height_cm: input.height_cm,
+        birth_date: input.birth_date,
+        sex: input.sex,
+        activity_level: input.activity_level,
+      },
+      { onConflict: "id" },
+    )
+    .select(PROFILE_COLUMNS)
+    .single();
 
-  if (error) throw error;
+  if (!error) return data as Profile;
+
+  if (isMissingColumnError(error)) {
+    throw new Error(
+      "Profile energy columns are missing. Run migration 20250608120000_profile_energy.sql in the Supabase SQL editor.",
+    );
+  }
+
+  throw error;
+}
+
+/** @deprecated Use upsertProfileEnergy */
+export async function updateProfileEnergy(userId: string, input: ProfileEnergyInput): Promise<void> {
+  await upsertProfileEnergy(userId, input);
 }

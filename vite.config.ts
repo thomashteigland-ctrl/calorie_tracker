@@ -3,4 +3,13 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      "/api/off-search": {
+        target: "https://search.openfoodfacts.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/off-search/, "/search"),
+      },
+    },
+  },
 });

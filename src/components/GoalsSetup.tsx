@@ -14,7 +14,9 @@ export function GoalsSetup() {
     <div className="auth-screen">
       <div className="auth-card">
         <h1>Welcome</h1>
-        <p className="auth-card__lead">Set your target to calculate calorie balance and macro goals.</p>
+        <p className="auth-card__lead">
+          Enter your current stats and weight goal — we&apos;ll calculate your daily calorie and macro targets.
+        </p>
         {!open ? (
           <button type="button" className="btn btn--primary" onClick={() => setOpen(true)}>
             Set up target

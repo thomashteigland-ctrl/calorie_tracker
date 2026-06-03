@@ -43,6 +43,7 @@ type AuthState = {
   signOut: () => Promise<void>;
   refreshGoals: () => Promise<void>;
   refreshProfile: () => Promise<Profile | null>;
+  applySavedTarget: (profile: Profile, goals: UserGoals) => void;
   refreshIdentities: () => Promise<void>;
 };
 
@@ -71,6 +72,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await getGoals(userId);
       setGoals(data);
+    } catch (err) {
+      console.warn("Goals load failed:", err);
     } finally {
       setGoalsLoading(false);
     }
@@ -84,11 +87,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return data;
     } catch (err) {
       console.warn("Profile load failed:", err);
-      setProfile(null);
       return null;
     } finally {
       setProfileLoading(false);
     }
+  }, []);
+
+  const applySavedTarget = useCallback((nextProfile: Profile, nextGoals: UserGoals) => {
+    setProfile(nextProfile);
+    setGoals(nextGoals);
   }, []);
 
   const refreshGoals = useCallback(async () => {
@@ -247,6 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       refreshGoals,
       refreshProfile,
+      applySavedTarget,
       refreshIdentities,
     }),
     [
@@ -265,6 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut,
       refreshGoals,
       refreshProfile,
+      applySavedTarget,
       refreshIdentities,
     ],
   );

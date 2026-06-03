@@ -34,7 +34,7 @@ export function TargetSetupModal({ onClose, onSaved, dismissible = true }: Props
           ) : null}
         </header>
         <p className="modal__hint">
-          Used for BMR, daily burn, and macro goals. Update weight here when it changes.
+          Enter your stats and weight goal — daily calories and macros are calculated from your timeline.
         </p>
         <TargetSetupForm onSaved={() => handleSaved()} />
       </div>

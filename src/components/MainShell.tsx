@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useDailyEnergy } from "../hooks/useDailyEnergy";
-import { isTargetConfigured } from "../lib/target";
+import { isTargetConfigured, weightGoalSummary } from "../lib/target";
 import type { Profile } from "../types/profile";
 import { BottomNav } from "./BottomNav";
 import { HomeScreen } from "./HomeScreen";
@@ -11,7 +11,7 @@ import { TargetSetupModal } from "./TargetSetupModal";
 type Tab = "diary" | "progress";
 
 export function MainShell() {
-  const { signOut, user, profile, refreshProfile, refreshGoals } = useAuth();
+  const { signOut, user, profile, goals, refreshProfile, refreshGoals } = useAuth();
   const [tab, setTab] = useState<Tab>("diary");
   const [targetOpen, setTargetOpen] = useState(false);
   const [energyRefreshKey, setEnergyRefreshKey] = useState(0);
@@ -31,15 +31,16 @@ export function MainShell() {
       setProfileForEnergy(null);
     }
   }, [profile, profileForEnergy]);
-  const targetConfigured = isTargetConfigured(energyProfile, weightKg);
+  const targetConfigured = isTargetConfigured(energyProfile, weightKg, goals);
+  const goalSummary = goals && weightKg != null ? weightGoalSummary(goals, weightKg) : null;
 
   function openTarget() {
     setTargetOpen(true);
   }
 
   async function handleTargetSaved() {
-    const freshProfile = await refreshProfile();
     await refreshGoals();
+    const freshProfile = await refreshProfile();
     if (freshProfile) setProfileForEnergy(freshProfile);
     setEnergyRefreshKey((k) => k + 1);
   }
@@ -55,15 +56,13 @@ export function MainShell() {
 
       <div className="app-shell__content">
         {tab === "diary" ? (
-          <HomeScreen
-            energy={energy}
-            targetConfigured={targetConfigured}
-            onOpenTarget={openTarget}
-          />
+          <HomeScreen energy={energy} weightKg={weightKg} />
         ) : (
           <ProgressScreen
             energy={energy}
+            weightKg={weightKg}
             targetConfigured={targetConfigured}
+            goalSummary={goalSummary}
             onOpenTarget={openTarget}
           />
         )}
@@ -71,7 +70,7 @@ export function MainShell() {
 
       <BottomNav active={tab} onChange={setTab} />
 
-      {targetOpen ? (
+      {targetOpen && tab === "progress" ? (
         <TargetSetupModal
           onClose={() => setTargetOpen(false)}
           onSaved={() => void handleTargetSaved()}

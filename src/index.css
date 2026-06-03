@@ -285,12 +285,197 @@ body {
 }
 
 .goals-form__tdee {
+  margin: 0.5rem 0 0;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.goal-plan-card {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface));
+}
+
+.goal-plan-card__header {
+  margin-bottom: 1rem;
+}
+
+.goal-plan-card__eyebrow {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.goal-plan-card__headline {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.goal-plan-card__meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.goal-plan-card__goal {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.goal-plan-card__goal-label {
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.goal-plan-card__goal-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.goal-plan-card__goal-unit {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.goal-plan-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.goal-plan-card__stats div {
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg) 35%, transparent);
+}
+
+.goal-plan-card__stats dt {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.goal-plan-card__stats dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.goal-plan-card__assessment {
+  padding: 0.85rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 25%, transparent);
+}
+
+.goal-plan-card__assessment--healthy {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+}
+
+.goal-plan-card__assessment--steep {
+  border-color: color-mix(in srgb, #f5c542 45%, var(--border));
+  background: color-mix(in srgb, #f5c542 10%, var(--surface));
+}
+
+.goal-plan-card__assessment--aggressive {
+  border-color: color-mix(in srgb, #f08c6d 45%, var(--border));
+  background: color-mix(in srgb, #f08c6d 10%, var(--surface));
+}
+
+.goal-plan-card__assessment--unsustainable {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+}
+
+.goal-plan-card__assessment-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.goal-plan-card__assessment-value {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.goal-plan-card__rating {
+  display: inline-block;
+  margin: 0 0 0.45rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.goal-plan-card__rating--healthy {
+  color: #0a120e;
+  background: var(--success);
+}
+
+.goal-plan-card__rating--steep {
+  color: #1a1408;
+  background: #f5c542;
+}
+
+.goal-plan-card__rating--aggressive {
+  color: #1a100c;
+  background: #f08c6d;
+}
+
+.goal-plan-card__rating--unsustainable {
+  color: #1a080a;
+  background: var(--danger);
+}
+
+.goal-plan-card__rating--maintain {
+  color: var(--text);
+  background: color-mix(in srgb, var(--muted) 35%, var(--surface));
+}
+
+.goal-plan-card__assessment-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.goal-plan-card__capped {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.goal-plan-card__macros {
+  margin: 0.85rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 .energy-stats {
@@ -562,6 +747,81 @@ body {
   gap: 0.5rem;
 }
 
+.meal-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.meal-group__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.meal-group__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: none;
+}
+
+.add-food-session {
+  margin: 0 0 0.75rem;
+}
+
+.modal__subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.modal-backdrop--stack {
+  z-index: 110;
+}
+
+.meal-edit-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.meal-edit-list__row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.meal-edit-list__open {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.meal-edit-list__open:hover {
+  border-color: var(--accent);
+}
+
+.meal-edit-add-btn {
+  margin-bottom: 1rem;
+}
+
 .log-entry--clickable {
   width: 100%;
   display: flex;
@@ -595,6 +855,77 @@ body {
   font-weight: 600;
   color: var(--accent);
   flex-shrink: 0;
+}
+
+.log-entry--exercise {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px dashed color-mix(in srgb, #6eb5ff 45%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, #6eb5ff 8%, var(--surface));
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.log-entry--exercise:hover {
+  background: color-mix(in srgb, #6eb5ff 14%, var(--surface));
+}
+
+.log-entry--exercise .log-entry__title {
+  flex: 1;
+}
+
+.log-entry--exercise .log-entry__kcal {
+  color: #6eb5ff;
+}
+
+.log-entry__badge {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #6eb5ff 22%, var(--surface));
+  color: #6eb5ff;
+}
+
+.exercise-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.exercise-section__title {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.exercise-add-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.exercise-add-btn:hover {
+  border-color: #6eb5ff;
+  color: #6eb5ff;
+  background: color-mix(in srgb, #6eb5ff 8%, transparent);
 }
 
 .log-detail-macros {
@@ -645,18 +976,32 @@ body {
 .fab {
   position: fixed;
   right: 1.25rem;
-  bottom: 1.25rem;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+  bottom: 4.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.75rem 1rem 0.75rem 1.2rem;
+  border-radius: 999px;
   border: none;
   background: var(--accent);
   color: #0a120e;
-  font-size: 2rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
   line-height: 1;
-  font-weight: 300;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  z-index: 40;
+}
+
+.fab__label {
+  white-space: nowrap;
+}
+
+.fab__icon {
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1;
 }
 
 .fab:hover {
@@ -897,7 +1242,7 @@ body {
 }
 
 .app-shell__header {
-  padding: 1rem 1rem 0;
+  padding: max(1.25rem, calc(env(safe-area-inset-top, 0px) + 0.75rem)) 1rem 0;
 }
 
 .app-shell__header h1 {
@@ -907,7 +1252,7 @@ body {
 
 .app-shell__content {
   flex: 1;
-  padding: 0 1rem 1rem;
+  padding: 1rem 1rem 1rem;
 }
 
 .bottom-nav {
@@ -1079,50 +1424,85 @@ body {
   margin-bottom: 1rem;
 }
 
-.calorie-equation {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 1rem;
+.calorie-tracker {
   border: 1px solid var(--border);
   border-radius: 12px;
+  overflow: hidden;
   background: var(--surface);
   margin-bottom: 0.75rem;
 }
 
-.calorie-equation__col {
+.calorie-tracker__bmr {
+  margin: 0;
+  padding: 0.55rem 1rem;
   text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 25%, var(--surface));
 }
 
-.calorie-equation__col--center {
-  padding: 0 0.5rem;
+.calorie-tracker__bmr strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.calorie-equation {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  align-items: stretch;
+  padding: 1rem 0.5rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  margin-bottom: 0;
+}
+
+.calorie-equation__col {
+  text-align: center;
+  padding: 0 0.35rem;
+}
+
+.calorie-equation__col + .calorie-equation__col {
   border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
+}
+
+.calorie-equation__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
 }
 
 .calorie-equation__value {
   display: block;
   font-size: 1.35rem;
   font-weight: 700;
+  line-height: 1.1;
+}
+
+.calorie-equation__target {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.1;
 }
 
 .calorie-equation__net {
   display: block;
   font-size: 1.35rem;
   font-weight: 700;
+  line-height: 1.1;
 }
 
-.calorie-equation__net--deficit {
-  color: var(--accent);
+.calorie-equation__net--good {
+  color: var(--success);
 }
 
-.calorie-equation__net--surplus {
-  color: #f5a623;
-}
-
-.calorie-equation__net--on {
-  color: var(--muted);
+.calorie-equation__net--bad {
+  color: var(--danger);
 }
 
 .calorie-equation__label {
@@ -1166,6 +1546,12 @@ body {
 .target-prompt__value--muted {
   color: var(--muted);
   font-weight: 500;
+}
+
+.target-prompt__sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 400;
 }
 
 .energy-stats--compact {
@@ -1396,6 +1782,34 @@ body {
   color: var(--muted);
 }
 
+.steps-log-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.steps-log-form label span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.steps-log-form input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.steps-log-form__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .progress-card--disabled {
   opacity: 0.7;
 }
@@ -1458,8 +1872,4 @@ body {
   padding: 0.35rem 0;
   border-bottom: 1px solid var(--border);
   color: var(--muted);
-}
-
-.fab {
-  bottom: 4.5rem;
 }

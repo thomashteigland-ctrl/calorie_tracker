@@ -30,12 +30,16 @@ export async function isDiaryClosed(userId: string, loggedDate: string): Promise
 }
 
 export async function closeDiary(userId: string, loggedDate: string): Promise<void> {
-  const { error } = await supabase.from("diary_closures").upsert(
-    { user_id: userId, logged_date: loggedDate },
-    { onConflict: "user_id,logged_date" },
-  );
+  const { error } = await supabase.from("diary_closures").insert({
+    user_id: userId,
+    logged_date: loggedDate,
+  });
 
-  if (error) throw error;
+  if (error) {
+    // Already closed (stale UI or double tap)
+    if (error.code === "23505") return;
+    throw error;
+  }
 }
 
 async function caloriesConsumedByDate(

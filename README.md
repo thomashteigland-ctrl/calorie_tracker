@@ -49,6 +49,9 @@ Run migrations in order (SQL editor):
 5. `supabase/migrations/20250606120000_progress_tracking.sql` (weight + steps tables)
 6. `supabase/migrations/20250607120000_diary_closures.sql` (close diary for streak / cumulative deficit)
 7. `supabase/migrations/20250608120000_profile_energy.sql` (height, birth date, sex, activity for BMR / TDEE)
+8. `supabase/migrations/20250609120000_diary_meals.sql` (group food logs into named meals)
+9. `supabase/migrations/20250610120000_weight_goal_plan.sql` (target weight + weeks for calorie goal)
+10. `supabase/migrations/20250611120000_exercise_logs.sql` (manual exercise / active kcal in diary)
 
 ### Static assets (icons, images)
 

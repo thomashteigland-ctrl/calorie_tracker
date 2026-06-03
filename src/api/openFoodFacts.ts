@@ -1,4 +1,5 @@
 import { foodIdFromBarcode, normalizeBarcode } from "../lib/barcode";
+import { mergeFoodResults, rankFoodResults, searchQueryVariants } from "../lib/foodSearch";
 import type { Food } from "../types/food";
 
 type OffNutriments = Record<string, number | string | undefined>;
@@ -17,6 +18,26 @@ type OffResponse = {
   status_verbose?: string;
   product?: OffProduct;
 };
+
+type OffSearchHit = OffProduct & {
+  code: string;
+  brands?: string[];
+};
+
+type OffSearchResponse = {
+  hits?: OffSearchHit[];
+  count?: number;
+};
+
+const OFF_USER_AGENT =
+  "CalorieCounterApp/1.0 (https://github.com/thomashteigland-ctrl/calorie_tracker)";
+
+function offHeaders(): HeadersInit {
+  return {
+    Accept: "application/json",
+    "User-Agent": OFF_USER_AGENT,
+  };
+}
 
 function num(value: unknown): number | null {
   if (value == null || value === "") return null;
@@ -65,7 +86,7 @@ export async function fetchOpenFoodFactsProduct(barcode: string): Promise<OffPro
 
   const res = await fetch(
     `https://world.openfoodfacts.org/api/v2/product/${normalized}.json`,
-    { headers: { Accept: "application/json" } },
+    { headers: offHeaders() },
   );
 
   if (!res.ok) {
@@ -75,4 +96,57 @@ export async function fetchOpenFoodFactsProduct(barcode: string): Promise<OffPro
   const data = (await res.json()) as OffResponse;
   if (data.status !== 1 || !data.product) return null;
   return data.product;
+}
+
+async function runOffSearch(query: string, limit: number, country?: string): Promise<Food[]> {
+  const params = new URLSearchParams({ q: query, page_size: String(limit) });
+  if (country) params.set("countries_tags_en", country);
+
+  const res = await fetch(`/api/off-search?${params}`, {
+    headers: offHeaders(),
+  });
+  if (!res.ok) return [];
+
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) return [];
+
+  const data = (await res.json()) as OffSearchResponse;
+  if (!Array.isArray(data.hits)) return [];
+
+  return data.hits
+    .map((hit) => {
+      const barcode = normalizeBarcode(hit.code);
+      if (!barcode) return null;
+      return mapOffProductToFood(hit, barcode);
+    })
+    .filter((f): f is NonNullable<typeof f> => f != null);
+}
+
+/**
+ * Full-text search via Open Food Facts Search-a-licious (Elasticsearch).
+ * Tries several query variants so long / natural-language input still matches.
+ */
+export async function searchOpenFoodFactsProducts(
+  query: string,
+  limit = 20,
+  country = "Norway",
+): Promise<Food[]> {
+  const q = query.trim();
+  if (!q) return [];
+
+  const variants = searchQueryVariants(q).slice(0, 4);
+  const poolLimit = Math.max(limit, 24);
+  const pools: Food[] = [];
+
+  for (const variant of variants) {
+    const [norway, global] = await Promise.all([
+      runOffSearch(variant, poolLimit, country),
+      runOffSearch(variant, poolLimit),
+    ]);
+    pools.push(...norway, ...global);
+    if (pools.length >= poolLimit * 2) break;
+  }
+
+  const merged = mergeFoodResults(pools, [], poolLimit * 2);
+  return rankFoodResults(merged, q, limit);
 }

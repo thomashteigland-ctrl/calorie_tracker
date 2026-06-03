@@ -1,15 +1,14 @@
 import type { MacroTotals } from "../lib/macros";
 import type { DailyEnergy } from "../lib/energy";
+import { dailyCalorieProgress } from "../lib/target";
 import type { UserGoals } from "../types/goals";
 import { MacroDonut } from "./MacroDonut";
-import { TargetSetupPrompt } from "./TargetSetupPrompt";
 
 type Props = {
   totals: MacroTotals;
   goals: UserGoals;
   energy: DailyEnergy | null;
-  targetConfigured: boolean;
-  onOpenTarget: () => void;
+  loggedActivityKcal: number;
 };
 
 const MACRO_COLORS = {
@@ -44,43 +43,51 @@ function MacroLine({
   );
 }
 
-export function DailySummary({
-  totals,
-  goals,
-  energy,
-  targetConfigured,
-  onOpenTarget,
-}: Props) {
-  const maintenanceKcal = energy?.tdee ?? null;
-  const target = maintenanceKcal ?? goals.daily_calories;
-  const net = totals.calories - target;
-  const netLabel = net > 0 ? "surplus" : net < 0 ? "deficit" : "on target";
-  const netValue = Math.abs(Math.round(net));
-  const burned =
-    maintenanceKcal != null ? Math.round(energy?.tdee ?? 0) : 0;
+export function DailySummary({ totals, goals, energy, loggedActivityKcal }: Props) {
+  const calorieGoal = goals.daily_calories;
+  const consumed = totals.calories;
+  const burned = Math.round(loggedActivityKcal);
+  const { kcalBalance, balanceLabel, onTrack } = dailyCalorieProgress(
+    consumed,
+    calorieGoal,
+    energy,
+    loggedActivityKcal,
+  );
+
+  const balanceDisplayLabel =
+    balanceLabel === "surplus"
+      ? "Kcal surplus"
+      : balanceLabel === "deficit"
+        ? "Kcal deficit"
+        : "Balanced";
 
   return (
     <section className="daily-summary" aria-label="Today's progress">
-      <TargetSetupPrompt
-        configured={targetConfigured}
-        maintenanceKcal={maintenanceKcal}
-        onOpen={onOpenTarget}
-      />
+      <div className="calorie-tracker">
+        {energy ? (
+          <p className="calorie-tracker__bmr">
+            BMR <strong>{Math.round(energy.bmr)}</strong> kcal/day
+          </p>
+        ) : null}
+        <div className="calorie-equation">
+          <div className="calorie-equation__col">
+            <span className="calorie-equation__value">{Math.round(consumed)}</span>
+            <span className="calorie-equation__label">Consumed</span>
+          </div>
 
-      <div className="calorie-equation">
-        <div className="calorie-equation__col">
-          <span className="calorie-equation__value">{Math.round(totals.calories)}</span>
-          <span className="calorie-equation__label">Consumed</span>
-        </div>
-        <div className="calorie-equation__col calorie-equation__col--center">
-          <span className={`calorie-equation__net calorie-equation__net--${netLabel}`}>
-            {netValue}
-          </span>
-          <span className="calorie-equation__label">kcal {netLabel}</span>
-        </div>
-        <div className="calorie-equation__col">
-          <span className="calorie-equation__value">{burned}</span>
-          <span className="calorie-equation__label">Burned</span>
+          <div className="calorie-equation__col">
+            <span className="calorie-equation__value">{burned}</span>
+            <span className="calorie-equation__label">Burned</span>
+          </div>
+
+          <div className="calorie-equation__col">
+            <span
+              className={`calorie-equation__net calorie-equation__net--${onTrack ? "good" : "bad"}`}
+            >
+              {kcalBalance != null ? Math.abs(Math.round(kcalBalance)) : "—"}
+            </span>
+            <span className="calorie-equation__label">{balanceDisplayLabel}</span>
+          </div>
         </div>
       </div>
 
