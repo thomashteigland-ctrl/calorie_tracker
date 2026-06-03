@@ -105,7 +105,7 @@ export function DiaryDateNav({ selectedDate, closedDates, onSelectDate }: Props)
           </div>
           <p className="diary-calendar-picker__legend">
             <span className="legend-dot legend-dot--closed" /> Closed
-            <span className="legend-dot legend-dot--today" /> Today (open)
+            <span className="legend-dot legend-dot--today" /> Open
           </p>
         </div>
       ) : null}

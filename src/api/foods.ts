@@ -102,27 +102,86 @@ export async function getFoodByBarcode(barcode: string): Promise<Food | null> {
   return data as Food | null;
 }
 
+function foodRowFromSearch(food: Food, userId?: string): FoodInsert {
+  const row: FoodInsert = {
+    id: food.id,
+    barcode: food.barcode ?? null,
+    name_no: food.name_no,
+    name_en: food.name_en,
+    source: food.source,
+    locale: food.locale,
+    calories_per_100g: food.calories_per_100g,
+    protein_per_100g: food.protein_per_100g,
+    carbs_per_100g: food.carbs_per_100g,
+    fat_per_100g: food.fat_per_100g,
+    raw_nutrients: { cached: true },
+  };
+  if (userId && (food.source === "openfoodfacts" || food.source === "user")) {
+    row.created_by = userId;
+  }
+  return row;
+}
+
 async function upsertFood(row: FoodInsert): Promise<Food> {
   const { data, error } = await supabase
     .from("foods")
     .upsert(row, { onConflict: "id" })
-    .select(FOOD_COLUMNS)
-    .single();
+    .select(FOOD_SEARCH_COLUMNS)
+    .maybeSingle();
+
+  if (error?.code === "23505" && row.barcode) {
+    const { data: byBarcode, error: bcErr } = await supabase
+      .from("foods")
+      .select(FOOD_SEARCH_COLUMNS)
+      .eq("barcode", row.barcode)
+      .maybeSingle();
+    if (bcErr) throw bcErr;
+    if (byBarcode) return byBarcode as Food;
+  }
 
   if (error) throw error;
+
+  if (!data) {
+    const { data: refetch, error: refetchErr } = await supabase
+      .from("foods")
+      .select(FOOD_SEARCH_COLUMNS)
+      .eq("id", row.id)
+      .maybeSingle();
+    if (refetchErr) throw refetchErr;
+    if (!refetch) throw new Error("Could not save food for logging.");
+    return refetch as Food;
+  }
+
   return data as Food;
 }
 
-/** Ensure a food row exists before logging (required for Open Food Facts search hits). */
-export async function cacheFoodForLog(food: Food, userId: string): Promise<Food> {
-  if (food.source !== "openfoodfacts") return food;
+/** Ensure the food exists in `foods` before inserting a log (OFF hits + missing Matvaretabellen rows). */
+export async function ensureFoodForLog(food: Food, userId: string): Promise<Food> {
+  const { data: byId, error: idErr } = await supabase
+    .from("foods")
+    .select(FOOD_SEARCH_COLUMNS)
+    .eq("id", food.id)
+    .maybeSingle();
 
-  const row: FoodInsert = {
-    ...food,
-    created_by: userId,
-    raw_nutrients: food.raw_nutrients ?? { search: true },
-  };
-  return upsertFood(row);
+  if (idErr) throw idErr;
+  if (byId) return byId as Food;
+
+  if (food.barcode) {
+    const { data: byBarcode, error: bcErr } = await supabase
+      .from("foods")
+      .select(FOOD_SEARCH_COLUMNS)
+      .eq("barcode", food.barcode)
+      .maybeSingle();
+    if (bcErr) throw bcErr;
+    if (byBarcode) return byBarcode as Food;
+  }
+
+  return upsertFood(foodRowFromSearch(food, userId));
+}
+
+/** @deprecated Use ensureFoodForLog */
+export async function cacheFoodForLog(food: Food, userId: string): Promise<Food> {
+  return ensureFoodForLog(food, userId);
 }
 
 /** Look up barcode in our DB, then Open Food Facts; save for everyone. */
@@ -141,7 +200,7 @@ export async function resolveFoodFromBarcode(barcode: string, userId: string): P
   }
 
   const mapped = mapOffProductToFood(product, normalized);
-  return upsertFood({ ...mapped, created_by: userId });
+  return upsertFood(foodRowFromSearch(mapped as Food, userId));
 }
 
 export type ManualFoodInput = {

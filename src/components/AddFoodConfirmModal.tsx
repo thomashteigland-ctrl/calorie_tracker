@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { cacheFoodForLog } from "../api/foods";
+import { ensureFoodForLog } from "../api/foods";
 import { addFoodLog } from "../api/logs";
 import { createMeal } from "../api/meals";
 import { macrosForPortions } from "../lib/macros";
@@ -51,12 +51,16 @@ export function AddFoodConfirmModal({
         onMealCreated(meal.id, meal.name);
       }
 
-      const cached = await cacheFoodForLog(food, userId);
+      const cached = await ensureFoodForLog(food, userId);
       await addFoodLog(userId, cached.id, portionNum, loggedDate, activeMealId);
       onAdded();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add food");
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: string }).message)
+          : "Could not add food";
+      setError(message || "Could not add food");
     } finally {
       setSaving(false);
     }

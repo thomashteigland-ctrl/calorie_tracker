@@ -242,11 +242,31 @@ export function foodHaystack(food: Pick<Food, "name_no" | "name_en" | "barcode">
   return `${food.name_no ?? ""} ${food.name_en ?? ""} ${food.barcode ?? ""}`.toLowerCase();
 }
 
-export function termMatchesHaystack(haystack: string, compactHaystack: string, term: string): boolean {
+/** English ↔ Norwegian (and common variants) for matching user queries to Matvaretabellen names. */
+const TERM_ALIASES: Record<string, string[]> = {
+  chicken: ["kylling"],
+  kylling: ["chicken"],
+  fillet: ["filet"],
+  filet: ["fillet"],
+  breast: ["bryst"],
+  bryst: ["breast"],
+  zucchini: ["squash", "courgette"],
+  squash: ["zucchini", "courgette"],
+  rice: ["ris"],
+  ris: ["rice"],
+};
+
+function termVariants(term: string): string[] {
   const t = term.toLowerCase();
-  if (haystack.includes(t)) return true;
-  const compactTerm = compactText(t);
-  if (compactTerm.length >= 3 && compactHaystack.includes(compactTerm)) return true;
+  return [t, ...(TERM_ALIASES[t] ?? [])];
+}
+
+export function termMatchesHaystack(haystack: string, compactHaystack: string, term: string): boolean {
+  for (const variant of termVariants(term)) {
+    if (haystack.includes(variant)) return true;
+    const compactTerm = compactText(variant);
+    if (compactTerm.length >= 3 && compactHaystack.includes(compactTerm)) return true;
+  }
   return false;
 }
 
@@ -283,7 +303,7 @@ export function scoreFoodMatch(
   score += matched * 5;
   if (matched === terms.length) score += 8;
 
-  if (food.source === "matvaretabellen") score += 3;
+  if (food.source === "matvaretabellen") score += 20;
 
   return score;
 }

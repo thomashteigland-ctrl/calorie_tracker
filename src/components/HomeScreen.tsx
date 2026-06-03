@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { getStepsForDate } from "../api/activity";
 
-import { closeDiary, getClosedDates, isDiaryClosed } from "../api/diary";
+import { closeDiary, getClosedDates, isDiaryClosed, openDiary } from "../api/diary";
 
 import { getExerciseLogsForDate } from "../api/exercise";
 
@@ -52,15 +52,17 @@ type Props = {
 
   weightKg: number | null;
 
+  loggedDate: string;
+
+  onLoggedDateChange: (iso: string) => void;
+
 };
 
 
 
-export function HomeScreen({ energy, weightKg }: Props) {
+export function HomeScreen({ energy, weightKg, loggedDate, onLoggedDateChange }: Props) {
 
   const { user, goals } = useAuth();
-
-  const [loggedDate, setLoggedDate] = useState(todayLocalDate);
 
   const [closedDates, setClosedDates] = useState<Set<string>>(new Set());
 
@@ -222,13 +224,37 @@ export function HomeScreen({ energy, weightKg }: Props) {
 
 
 
+  async function reopenDiaryIfClosed() {
+
+    if (!user || !isClosed) return;
+
+    try {
+
+      await openDiary(user.id, loggedDate);
+
+    } catch (err) {
+
+      setError(err instanceof Error ? err.message : "Could not reopen diary");
+
+    }
+
+  }
+
+
+
   function handleAdded() {
 
-    void loadLogs();
+    void (async () => {
 
-    void loadActivity();
+      await reopenDiaryIfClosed();
 
-    void loadMeta();
+      void loadLogs();
+
+      void loadActivity();
+
+      void loadMeta();
+
+    })();
 
   }
 
@@ -236,9 +262,15 @@ export function HomeScreen({ energy, weightKg }: Props) {
 
   function handleExerciseSaved() {
 
-    void loadActivity();
+    void (async () => {
 
-    void loadMeta();
+      await reopenDiaryIfClosed();
+
+      void loadActivity();
+
+      void loadMeta();
+
+    })();
 
   }
 
@@ -308,7 +340,9 @@ export function HomeScreen({ energy, weightKg }: Props) {
 
     <>
 
-      <DiaryDateNav selectedDate={loggedDate} closedDates={closedDates} onSelectDate={setLoggedDate} />
+      <div className="home-screen">
+
+      <DiaryDateNav selectedDate={loggedDate} closedDates={closedDates} onSelectDate={onLoggedDateChange} />
 
 
 
@@ -325,32 +359,6 @@ export function HomeScreen({ energy, weightKg }: Props) {
         loggedActivityKcal={loggedActivityKcal}
 
       />
-
-
-
-      {canClose ? (
-
-        <button
-
-          type="button"
-
-          className="btn btn--primary btn--block close-diary-btn"
-
-          disabled={closing || !hasDiaryEntries}
-
-          onClick={() => void handleCloseDiary()}
-
-        >
-
-          {closing ? "Closing…" : "Close diary for this day"}
-
-        </button>
-
-      ) : isClosed ? (
-
-        <p className="status status--success close-diary-status">Diary closed — counts toward your streak.</p>
-
-      ) : null}
 
 
 
@@ -473,6 +481,48 @@ export function HomeScreen({ energy, weightKg }: Props) {
         </section>
 
       </section>
+
+
+
+      <div className="home-screen__footer">
+
+      {canClose ? (
+
+        <button
+
+          type="button"
+
+          className="btn btn--primary btn--block close-diary-btn"
+
+          disabled={closing || !hasDiaryEntries}
+
+          onClick={() => void handleCloseDiary()}
+
+        >
+
+          {closing ? "Closing…" : "Close diary for this day"}
+
+        </button>
+
+      ) : isClosed ? (
+
+        <p className="diary-completed" role="status">
+
+          <span className="diary-completed__icon" aria-hidden="true">
+
+            ✓
+
+          </span>
+
+          Diary completed
+
+        </p>
+
+      ) : null}
+
+      </div>
+
+      </div>
 
 
 

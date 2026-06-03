@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useDailyEnergy } from "../hooks/useDailyEnergy";
+import { todayLocalDate } from "../lib/dates";
 import { isTargetConfigured, weightGoalSummary } from "../lib/target";
 import type { Profile } from "../types/profile";
 import { BottomNav } from "./BottomNav";
@@ -13,6 +14,7 @@ type Tab = "diary" | "progress";
 export function MainShell() {
   const { signOut, user, profile, goals, refreshProfile, refreshGoals } = useAuth();
   const [tab, setTab] = useState<Tab>("diary");
+  const [diaryDate, setDiaryDate] = useState(todayLocalDate);
   const [targetOpen, setTargetOpen] = useState(false);
   const [energyRefreshKey, setEnergyRefreshKey] = useState(0);
   const [profileForEnergy, setProfileForEnergy] = useState<Profile | null>(null);
@@ -46,7 +48,7 @@ export function MainShell() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${tab === "diary" ? " app-shell--diary" : ""}`}>
       <header className="app-header app-header--row app-shell__header">
         <h1>Calorie Counter</h1>
         <button type="button" className="btn btn--ghost btn--small" onClick={() => signOut()}>
@@ -56,7 +58,12 @@ export function MainShell() {
 
       <div className="app-shell__content">
         {tab === "diary" ? (
-          <HomeScreen energy={energy} weightKg={weightKg} />
+          <HomeScreen
+            energy={energy}
+            weightKg={weightKg}
+            loggedDate={diaryDate}
+            onLoggedDateChange={setDiaryDate}
+          />
         ) : (
           <ProgressScreen
             energy={energy}
@@ -64,6 +71,10 @@ export function MainShell() {
             targetConfigured={targetConfigured}
             goalSummary={goalSummary}
             onOpenTarget={openTarget}
+            onGoToDiaryDay={(iso) => {
+              setDiaryDate(iso);
+              setTab("diary");
+            }}
           />
         )}
       </div>

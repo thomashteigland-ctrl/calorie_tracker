@@ -1,4 +1,5 @@
 import { addDays, todayLocalDate } from "../lib/dates";
+import { countConsecutiveUnclosedDays, resolveStreakDisplay } from "../lib/diaryStreak";
 import { macrosForPortions } from "../lib/macros";
 import { supabase } from "../lib/supabase";
 import { FOOD_COLUMNS } from "./foods";
@@ -40,6 +41,16 @@ export async function closeDiary(userId: string, loggedDate: string): Promise<vo
     if (error.code === "23505") return;
     throw error;
   }
+}
+
+export async function openDiary(userId: string, loggedDate: string): Promise<void> {
+  const { error } = await supabase
+    .from("diary_closures")
+    .delete()
+    .eq("user_id", userId)
+    .eq("logged_date", loggedDate);
+
+  if (error) throw error;
 }
 
 async function caloriesConsumedByDate(
@@ -85,7 +96,7 @@ export async function getDiaryStreakStats(
   let cursor = closedSet.has(today) ? today : addDays(today, -1);
 
   if (cursor < lookbackStart) {
-    return emptyStreak(today, closedSet);
+    return emptyStreak(today, closedSet, lookbackStart);
   }
 
   while (cursor >= lookbackStart && closedSet.has(cursor)) {
@@ -102,8 +113,6 @@ export async function getDiaryStreakStats(
     return { logged_date: iso, consumed, goal: dailyCalorieGoal, balance };
   });
 
-  const totalBalance = streakDays.reduce((s, d) => s + d.balance, 0);
-
   const unclosedDates: string[] = [];
   const recentLogged = await getLoggedDates(userId, addDays(today, -21), today);
   for (const iso of recentLogged) {
@@ -114,22 +123,12 @@ export async function getDiaryStreakStats(
   }
   unclosedDates.sort();
 
-  return {
-    streakDays,
-    streakLength: streakDates.length,
-    totalBalance,
-    unclosedDates,
-    canShowCumulative: streakDates.length > 0,
-  };
+  const consecutiveUnclosed = countConsecutiveUnclosedDays(today, closedSet, lookbackStart);
+  return resolveStreakDisplay(today, streakDates, streakDays, unclosedDates, consecutiveUnclosed);
 }
 
-function emptyStreak(today: string, closedSet: Set<string>): DiaryStreakStats {
+function emptyStreak(today: string, closedSet: Set<string>, lookbackStart: string): DiaryStreakStats {
   const unclosedDates = closedSet.has(today) ? [] : [today];
-  return {
-    streakDays: [],
-    streakLength: 0,
-    totalBalance: 0,
-    unclosedDates,
-    canShowCumulative: false,
-  };
+  const consecutiveUnclosed = countConsecutiveUnclosedDays(today, closedSet, lookbackStart);
+  return resolveStreakDisplay(today, [], [], unclosedDates, consecutiveUnclosed);
 }
